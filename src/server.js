@@ -1,22 +1,22 @@
-const request = require('request')
-const OAuth = require('oauth-1.0a')
-const crypto = require('crypto')
-
-import sirv from 'sirv';
-import express from 'express';
-import compression from 'compression';
-import * as sapper from '@sapper/server';
+import * as sapper from "@sapper/server";
+import OAuth from "oauth-1.0a";
+import compression from "compression";
+import cookieParser from "cookie-parser";
+import crypto from "crypto";
+import express from "express";
+import request from "request";
+import sirv from "sirv";
 
 const { PORT, NODE_ENV, TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET } = process.env;
-const dev = NODE_ENV === 'development';
+const dev = NODE_ENV === "development";
 
 const p = x => { console.log(x); return x; };
 
 const oauth = OAuth({
   consumer: { key: TWITTER_CONSUMER_KEY, secret: TWITTER_CONSUMER_SECRET },
-  signature_method: 'HMAC-SHA1',
+  signature_method: "HMAC-SHA1",
   hash_function(base_string, key) {
-    return crypto.createHmac('sha1', key).update(base_string).digest('base64');
+    return crypto.createHmac("sha1", key).update(base_string).digest("base64");
   },
 });
 
@@ -24,15 +24,24 @@ const postWithSignature = (data, callback) => {
   data.method = "POST";
   return request(
     { url: data.url, method: data.method, form: oauth.authorize(data) },
-    callback);
+    callback
+  );
 };
 
 express()
+  .use(cookieParser())
   .get("/oauth", (req, res) => {
     postWithSignature({
       url: "https://api.twitter.com/oauth/access_token",
       data: req.query,
-    }, (error, response, body) => res.redirect("/?" + body));
+    }, (error, response, body) => {
+      const token = JSON.stringify({
+        key: body.match(/oauth_token=([\w-]+)/)[1],
+        secret: body.match(/oauth_token_secret=([\w-]+)/)[1],
+      });
+      res.cookie("oauth_token", token, { maxAge: 900000, httpOnly: true });
+      res.redirect("/");
+    });
   })
   .get("/login", (req, res) => {
     postWithSignature({
@@ -48,21 +57,22 @@ express()
       url: `https://api.twitter.com/1.1/${req.path.slice("/api/".length)}`,
     };
     request(
-      p({
+      {
         url: data.url,
+        // qs: req.query,
         method: data.method,
-        headers: oauth.toHeader(oauth.authorize(data, { key: req.header("Authorization") })),
-      }),
+        headers: oauth.toHeader(oauth.authorize(data, JSON.parse(req.cookies.oauth_token))),
+      },
       (error, response, body) => {
         res.statusCode = response.statusCode;
         res.end(body);
       });
   })
-	.use(
-		compression({ threshold: 0 }),
-		sirv('static', { dev }),
+  .use(
+    compression({ threshold: 0 }),
+		sirv("static", { dev }),
 		sapper.middleware()
 	)
 	.listen(PORT, err => {
-		if (err) console.log('error', err);
+		if (err) console.log("error", err);
 	});
