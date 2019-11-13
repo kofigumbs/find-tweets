@@ -49,6 +49,22 @@ express()
       },
       (error, response, body) => res.end(body));
   })
+  .all(/^\/api\/.+/, (req, res) => {
+    const p = x => { console.log(x); return x; };
+    const path = req.path.slice("/api/".length);
+    const request_data = {
+      method: req.method,
+      url: `https://api.twitter.com/1.1/${path}`,
+      data: { oauth_token: req.header("Authorization") },
+    };
+    request(
+      {
+        url: request_data.url,
+        method: request_data.method,
+        headers: oauth.toHeader(oauth.authorize(request_data, { key: req.header("Authorization") })),
+      },
+      (error, response, body) => res.end(body));
+  })
 	.use(
 		compression({ threshold: 0 }),
 		sirv('static', { dev }),
