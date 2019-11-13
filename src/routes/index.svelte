@@ -1,8 +1,8 @@
 <script>
   // TODO
-  //  1. Search older things than the last 20
-  //  2. Click through (using Twitter embed)
-  //  3. Make Twitter do the hard work for user_timeline search
+  //  1. Click through (using Twitter embed)
+  //  2. Make Twitter do the hard work for user_timeline search
+  //  3. How to show DMs?
 
   let data = [];
   let term = "";
@@ -13,15 +13,15 @@
 
   function getTweets() {
     Promise.all([
-      fetch("/api/statuses/user_timeline.json")
+      fetch("/api/statuses/user_timeline.json?count=200")
       .then(response => response.json())
       .then(withStatusUrls),
 
-      fetch("/api/favorites/list.json")
+      fetch("/api/favorites/list.json?count=200")
       .then(response => response.json())
       .then(withStatusUrls),
 
-      fetch("/api/direct_messages/events/list.json")
+      fetch("/api/direct_messages/events/list.json?count=200")
       .then(response => response.json())
       .then(json => json.events.map(event => event.message_create.message_data)),
 

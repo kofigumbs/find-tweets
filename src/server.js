@@ -56,12 +56,18 @@ express()
       method: req.method,
       url: `https://api.twitter.com/1.1/${req.path.slice("/api/".length)}`,
     };
+    const { key, secret } = JSON.parse(req.cookies.oauth_token);
     request(
       {
         url: data.url,
-        // qs: req.query,
+        qs: req.query,
         method: data.method,
-        headers: oauth.toHeader(oauth.authorize(data, JSON.parse(req.cookies.oauth_token))),
+        oauth: {
+          consumer_key: TWITTER_CONSUMER_KEY,
+          consumer_secret: TWITTER_CONSUMER_SECRET,
+          token: key,
+          token_secret: secret,
+        },
       },
       (error, response, body) => {
         res.statusCode = response.statusCode;
