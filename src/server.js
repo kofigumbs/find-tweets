@@ -10,6 +10,8 @@ import * as sapper from '@sapper/server';
 const { PORT, NODE_ENV, TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET } = process.env;
 const dev = NODE_ENV === 'development';
 
+const p = x => { console.log(x); return x; };
+
 const oauth = OAuth({
   consumer: { key: TWITTER_CONSUMER_KEY, secret: TWITTER_CONSUMER_SECRET },
   signature_method: 'HMAC-SHA1',
@@ -18,52 +20,43 @@ const oauth = OAuth({
   },
 });
 
+const postWithSignature = (data, callback) => {
+  data.method = "POST";
+  return request(
+    { url: data.url, method: data.method, form: oauth.authorize(data) },
+    callback);
+};
+
 express()
   .get("/oauth", (req, res) => {
-    const request_data = {
-      method: "POST",
+    postWithSignature({
       url: "https://api.twitter.com/oauth/access_token",
-      data: {
-        oauth_token: req.query.oauth_token,
-        oauth_verifier: req.query.oauth_verifier,
-      },
-    };
-    request(
-      {
-        url: request_data.url,
-        method: request_data.method,
-        form: oauth.authorize(request_data),
-      },
-      (error, response, body) => res.redirect("/?" + body));
+      data: req.query,
+    }, (error, response, body) => res.redirect("/?" + body));
   })
   .get("/login", (req, res) => {
-    const request_data = {
-      method: "POST",
+    postWithSignature({
       url: "https://api.twitter.com/oauth/request_token",
-    };
-    request(
-      {
-        url: request_data.url,
-        method: request_data.method,
-        form: oauth.authorize(request_data),
-      },
-      (error, response, body) => res.end(body));
+    }, (error, response, body) => {
+      const token = body.match(/oauth_token=([\w-]+)/)[1];
+      res.redirect(`https://api.twitter.com/oauth/authenticate?oauth_token=${token}`);
+    });
   })
   .all(/^\/api\/.+/, (req, res) => {
-    const p = x => { console.log(x); return x; };
-    const path = req.path.slice("/api/".length);
-    const request_data = {
+    const data = {
       method: req.method,
-      url: `https://api.twitter.com/1.1/${path}`,
-      data: { oauth_token: req.header("Authorization") },
+      url: `https://api.twitter.com/1.1/${req.path.slice("/api/".length)}`,
     };
     request(
-      {
-        url: request_data.url,
-        method: request_data.method,
-        headers: oauth.toHeader(oauth.authorize(request_data, { key: req.header("Authorization") })),
-      },
-      (error, response, body) => res.end(body));
+      p({
+        url: data.url,
+        method: data.method,
+        headers: oauth.toHeader(oauth.authorize(data, { key: req.header("Authorization") })),
+      }),
+      (error, response, body) => {
+        res.statusCode = response.statusCode;
+        res.end(body);
+      });
   })
 	.use(
 		compression({ threshold: 0 }),
