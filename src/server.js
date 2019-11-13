@@ -39,7 +39,7 @@ express()
         key: body.match(/oauth_token=([\w-]+)/)[1],
         secret: body.match(/oauth_token_secret=([\w-]+)/)[1],
       });
-      res.cookie("oauth_token", token, { maxAge: 900000, httpOnly: true });
+      res.cookie("oauth_token", token, { maxAge: 2147483647, httpOnly: true });
       res.redirect("/");
     });
   })

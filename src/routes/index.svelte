@@ -1,5 +1,10 @@
 <script>
-  let data = {};
+  // TODO
+  //  1. Search older things than the last 20
+  //  2. Click through (using Twitter embed)
+  //  3. Make Twitter do the hard work for user_timeline search
+
+  let data = [];
   let term = "";
 
   function withStatusUrls(tweets) {
@@ -21,9 +26,8 @@
       .then(json => json.events.map(event => event.message_create.message_data)),
 
     ]).then(json => json.flat())
-      .then(json => json.filter(tweet => tweet.text.includes(term)))
-      .then(json => json.map(tweet => ({ text: tweet.text, url: tweet.url })))
-      .then(allTheTweets => data = allTheTweets);
+      .then(json => json.filter(tweet => tweet.text.match(new RegExp(term, "i"))))
+      .then(json => data = json.map(tweet => ({ text: tweet.text, url: tweet.url })));
   }
 </script>
 
@@ -33,6 +37,8 @@
 
 <a href="/login">Login</a>
 <br>
-<input bind:value={term}/>
-<button on:click={getTweets}>Get Tweets</button>
-<pre><code>{JSON.stringify(data, null, 4)}</code></pre>
+<form on:submit|preventDefault={getTweets}>
+  <input bind:value={term}/>
+  <button type="submit">Get Tweets</button>
+</form>
+{#each data as { text, url }}<p><a href="{url}" target="_blank">{text}</a></p>{/each}
