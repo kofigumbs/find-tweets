@@ -46,6 +46,7 @@ express()
   .get("/login", (req, res) => {
     postWithSignature({
       url: "https://api.twitter.com/oauth/request_token",
+      oauth_callback: dev ? "http://localhost:5000/oauth" : "https://findtweets.herokuapp.com/oauth",
     }, (error, response, body) => {
       const token = body.match(/oauth_token=([\w-]+)/)[1];
       res.redirect(`https://api.twitter.com/oauth/authenticate?oauth_token=${token}`);
