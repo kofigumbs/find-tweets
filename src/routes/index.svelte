@@ -44,5 +44,6 @@
 <form on:submit|preventDefault={getTweets}>
   <input bind:value={term}/>
   <button type="submit">Get Tweets</button>
+  <p><em>{data.length} tweet{#if data.length != 1}s{/if}</em></p>
 </form>
 {#each data as tweet }<div use:embed={tweet}></div>{/each}
