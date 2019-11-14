@@ -23,7 +23,7 @@ const oauth = OAuth({
 const postWithSignature = (data, callback) => {
   data.method = "POST";
   return request(
-    { url: data.url, method: data.method, form: oauth.authorize(data) },
+    p({ url: data.url, method: data.method, form: oauth.authorize(data) }),
     callback
   );
 };
@@ -46,7 +46,9 @@ express()
   .get("/login", (req, res) => {
     postWithSignature({
       url: "https://api.twitter.com/oauth/request_token",
-      oauth_callback: dev ? "http://localhost:5000/oauth" : "https://findtweets.herokuapp.com/oauth",
+      data: {
+        oauth_callback: dev ? "http://localhost:5000/oauth" : "https://findtweets.herokuapp.com/oauth"
+      },
     }, (error, response, body) => {
       const token = body.match(/oauth_token=([\w-]+)/)[1];
       res.redirect(`https://api.twitter.com/oauth/authenticate?oauth_token=${token}`);
