@@ -1,6 +1,6 @@
 {
-  "name": "TODO",
-  "description": "TODO",
+  "name": "Find Tweets",
+  "description": "Recall tweets that you wrote, liked, retweeted, or shared",
   "version": "0.0.1",
   "scripts": {
     "dev": "sapper dev",
