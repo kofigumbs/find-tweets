@@ -2,6 +2,10 @@
   :global(twitter-widget) {
     margin: 0 auto;
   }
+  ol, li {
+    margin: 0;
+    padding: 0;
+  }
 </style>
 <script>
   let data = [];
