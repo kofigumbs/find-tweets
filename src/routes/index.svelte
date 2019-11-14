@@ -39,11 +39,15 @@
 	<title>Find Tweets</title>
 </svelte:head>
 
-<a href="/login">Login</a>
-<br>
-<form on:submit|preventDefault={getTweets}>
-  <input bind:value={term}/>
-  <button type="submit">Get Tweets</button>
-  <p><em>{data.length} tweet{#if data.length != 1}s{/if}</em></p>
-</form>
+<ol>
+  <li><a href="/login">Login</a></li>
+  <li>
+    <form on:submit|preventDefault={getTweets}>
+      <input bind:value={term}/>
+      <button type="submit">Get Tweets</button>
+    </form>
+  </li>
+</ol>
+
+<p><em>{data.length} tweet{#if data.length != 1}s{/if}</em></p>
 {#each data as tweet }<div use:embed={tweet}></div>{/each}
