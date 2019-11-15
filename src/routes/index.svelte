@@ -3,11 +3,11 @@
   let term = "";
 
   function embed(node, tweet) {
-    twttr.widgets.createTweet(tweet.id_str, node);
+    twttr.widgets.createTweet(tweet.id_str, node, { align: "center" });
     return {
       update(newTweet) {
         node.innerHTML = "";
-        twttr.widgets.createTweet(newTweet.id_str, node);
+        twttr.widgets.createTweet(newTweet.id_str, node, { align: "center" });
       }
     };
   }
